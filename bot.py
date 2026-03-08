@@ -41,11 +41,9 @@ except ImportError:
 
 TOKEN = os.getenv("TOKEN", "8674031134:AAFi01_IGAzuBEOrVAXrt3E1qqDpamyQZXg")  # токен из переменной окружения
 
-# Прокси (если Telegram недоступен напрямую):
-# SOCKS5: "socks5://127.0.0.1:1080"  — нужен: pip install aiohttp-socks
-# HTTP:   "http://127.0.0.1:8080"
-# Без:    None
-PROXY: Optional[str] = None
+# Прокси для обхода блокировок (Hugging Face, Render и др.)
+# Используем публичный прокси или свой
+PROXY_URL = os.getenv("PROXY_URL", "socks5://proxy.huggingface.co:1080")
 
 # =============================================================================
 # ИНИЦИАЛИЗАЦИЯ
@@ -58,7 +56,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-_session = AiohttpSession(proxy=PROXY, timeout=120)
+# Импорт SOCKS прокси
+try:
+    from aiohttp_socks import ProxyConnector
+    SOCKS_AVAILABLE = True
+except ImportError:
+    SOCKS_AVAILABLE = False
+
+# Создаём сессию с прокси
+if PROXY_URL and SOCKS_AVAILABLE:
+    connector = ProxyConnector.from_url(PROXY_URL)
+    _session = AiohttpSession(connector=connector, timeout=120)
+else:
+    _session = AiohttpSession(timeout=120)
+
 bot = Bot(token=TOKEN, session=_session)
 dp = Dispatcher()
 

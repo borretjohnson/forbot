@@ -2,3 +2,4 @@ pillow>=10.0.0
 aiogram>=3.0.0
 pillow-heif>=0.15.0
 piexif>=1.0.0
+aiohttp-socks>=0.8.0
